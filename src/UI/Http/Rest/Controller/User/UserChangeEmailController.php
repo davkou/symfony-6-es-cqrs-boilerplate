@@ -7,12 +7,13 @@ namespace UI\Http\Rest\Controller\User;
 use App\Shared\Application\Command\CommandBusInterface;
 use App\User\Application\Command\ChangeEmail\ChangeEmailCommand;
 use App\User\Domain\Exception\ForbiddenException;
+use Symfony\Component\HttpFoundation\Response;
 use UI\Http\Rest\Controller\CommandController;
 use UI\Http\Session;
 use Assert\Assertion;
 use Assert\AssertionFailedException;
 use Nelmio\ApiDocBundle\Annotation\Security;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,40 +28,37 @@ final class UserChangeEmailController extends CommandController
     }
 
     /**
-     *
-     * @OA\Response(
-     *     response=201,
-     *     description="Email changed"
-     * )
-     * @OA\Response(
-     *     response=400,
-     *     description="Bad request"
-     * )
-     * @OA\Response(
-     *     response=409,
-     *     description="Conflict"
-     * )
-     *
-     * @OA\RequestBody(
-     *     @OA\JsonContent(
-     *         type="object",
-     *         @OA\Property(property="email", type="string"),
-     *     )
-     * )
-     *
-     * @OA\Parameter(
-     *     name="uuid",
-     *     in="path",
-     *     @OA\Schema(type="string")
-     * )
-     *
-     * @OA\Tag(name="User")
-     * @Security(name="Bearer")
-     *
      * @throws AssertionFailedException
      * @throws Throwable
      */
-    #[Route(path: '/users/{uuid}/email', name: 'user_change_email', methods: ['POST'])]
+    #[OA\Response(
+        response: Response::HTTP_CREATED,
+        description: 'Email changed'
+    )]
+    #[OA\Response(
+        response: Response::HTTP_BAD_REQUEST,
+        description: 'Bad request'
+    )]
+    #[OA\Response(
+        response: Response::HTTP_CONFLICT,
+        description: 'Conflict',
+    )]
+    #[OA\RequestBody(
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'email', type: 'string', format: 'email')
+            ],
+            type: 'object'
+        )
+    )]
+    #[OA\Parameter(
+        name: 'uuid',
+        in: 'path',
+        schema: new OA\Schema(type: 'string', format: 'uuid')
+    )]
+    #[OA\Tag(name: 'User')]
+    #[Security(name: 'Bearer')]
+    #[Route(path: '/users/{uuid}/email', name: 'user_change_email', methods: [Request::METHOD_POST])]
     public function __invoke(string $uuid, Request $request): JsonResponse
     {
         $this->validateUuid($uuid);

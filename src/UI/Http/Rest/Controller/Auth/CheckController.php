@@ -7,11 +7,12 @@ namespace UI\Http\Rest\Controller\Auth;
 use App\User\Application\Command\SignIn\SignInCommand;
 use App\User\Application\Query\Auth\GetToken\GetTokenQuery;
 use App\User\Domain\Exception\InvalidCredentialsException;
+use Symfony\Component\HttpFoundation\Response;
 use UI\Http\Rest\Controller\CommandQueryController;
 use UI\Http\Rest\Response\OpenApi;
 use Assert\Assertion;
 use Assert\AssertionFailedException;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
@@ -19,39 +20,39 @@ use Throwable;
 final class CheckController extends CommandQueryController
 {
     /**
-     * @OA\Response(
-     *     response=200,
-     *     description="Login success",
-     *     @OA\JsonContent(
-     *        type="object",
-     *        @OA\Property(
-     *          property="token", type="string"
-     *        )
-     *     )
-     * )
-     * @OA\Response(
-     *     response=400,
-     *     description="Bad request"
-     * )
-     * @OA\Response(
-     *     response=401,
-     *     description="Bad credentials"
-     * )
-     * @OA\RequestBody(
-     *     @OA\JsonContent(
-     *         type="object",
-     *         @OA\Property(property="_password", type="string"),
-     *         @OA\Property(property="_username", type="string")
-     *     )
-     * )
-     *
-     * @OA\Tag(name="Auth")
-     *
      * @throws AssertionFailedException
      * @throws InvalidCredentialsException
      * @throws Throwable
      */
-    #[Route(path: '/auth_check', name: 'auth_check', methods: ['POST'], requirements: ['_username' => '\w+', '_password' => '\w+'])]
+    #[OA\Response(
+        response: Response::HTTP_OK,
+        description: 'Login success',
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: 'token', type: 'string'),
+            ],
+            type: 'object'
+        )
+    )]
+    #[OA\Response(
+        response: Response::HTTP_BAD_REQUEST,
+        description: 'Bad request',
+    )]
+    #[OA\Response(
+        response: Response::HTTP_UNAUTHORIZED,
+        description: 'Bad credentials',
+    )]
+    #[OA\RequestBody(
+        content: new OA\JsonContent(
+            properties: [
+                new OA\Property(property: '_password', type: 'string'),
+                new OA\Property(property: '_username', type: 'string'),
+            ],
+            type: 'object'
+        )
+    )]
+    #[OA\Tag(name: 'Auth')]
+    #[Route(path: '/auth_check', name: 'auth_check', requirements: ['_username' => '\w+', '_password' => '\w+'], methods: [Request::METHOD_POST])]
     public function __invoke(Request $request): OpenApi
     {
         $username = (string) $request->request->get('_username');
