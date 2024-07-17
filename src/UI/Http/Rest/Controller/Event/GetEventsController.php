@@ -29,19 +29,6 @@ class GetEventsController extends QueryController
      *     response=400,
      *     description="Bad request",
      *     @OA\JsonContent(ref="#/components/schemas/Error")
-     *
-     * )
-     * @OA\Response(
-     *     response=409,
-     *     description="Conflict"
-     * )
-     *
-     * @OA\Parameter(ref="#/components/parameters/page")
-     * @OA\Parameter(ref="#/components/parameters/limit")
-     *
-     * @OA\Tag(name="Events")
-     *
-     * @Security(name="Bearer")
      * )
      * @OA\Response(
      *     response=409,
