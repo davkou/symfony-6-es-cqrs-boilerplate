@@ -9,6 +9,7 @@ use Broadway\Domain\DomainMessage;
 use Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpStamp;
 use Symfony\Component\Messenger\Exception\HandlerFailedException;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\DelayStamp;
 use Throwable;
 
 final class MessengerAsyncEventBus
@@ -25,9 +26,10 @@ final class MessengerAsyncEventBus
     public function handle(DomainMessage $command): void
     {
         try {
-            $this->messageBus->dispatch($command, [
-                new AmqpStamp($command->getType()),
-            ]);
+	        $this->messageBus->dispatch($command, [
+		        new AmqpStamp($command->getType()), // Pour le routage AMQP
+		        new DelayStamp(15000), // Délai de 5 secondes avant traitement
+	        ]);
         } catch (HandlerFailedException $error) {
             $this->throwException($error);
         }
