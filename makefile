@@ -11,7 +11,7 @@ endif
 export compose env docker-os
 
 .PHONY: start
-start: erase build start-deps up db ## clean current environment, recreate dependencies and spin up again
+start: erase build start-deps up db init-elasticsearch## clean current environment, recreate dependencies and spin up again
 
 .PHONY: start-deps
 start-deps:  ## Start all dependencies and wait for it
@@ -135,3 +135,12 @@ htemplate:
 .PHONY: help
 help: ## Display this help message
 	@cat $(MAKEFILE_LIST) | grep -e "^[a-zA-Z_\-]*: *.*## *" | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+.PHONY: init-elasticsearch
+init-elasticsearch:
+	@echo "Waiting for Elasticsearch to start..."
+	@until curl -s http://localhost:9200 -o /dev/null; do sleep 5; done
+	@echo "Setting cluster settings..."
+	curl -XPUT -H "Content-Type: application/json" http://localhost:9200/_cluster/settings -d '{"transient": {"cluster.routing.allocation.disk.threshold_enabled": false }}'
+	curl -XPUT -H "Content-Type: application/json" http://localhost:9200/_all/_settings -d '{"index.blocks.read_only_allow_delete": null}'
+
